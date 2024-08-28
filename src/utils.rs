@@ -1,4 +1,4 @@
-use super::map::Wall;
+use super::map::{Wall, WallType};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
@@ -12,24 +12,20 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum WallType {
-    Full,
-    Half,
-}
-
 #[derive(Debug)]
 pub struct Ray {
     pub dir: Point,
     pub pos: Point,
+    pub angle: f32,
     pub collisions: Vec<(Point, WallType)>,
 }
 
 impl Ray {
-    pub fn new(dir: Point, pos: Point) -> Self {
+    pub fn new(dir: Point, pos: Point, angle: f32) -> Self {
         Self {
             dir,
             pos,
+            angle: angle % 360.0,
             collisions: Vec::new(),
         }
     }
@@ -41,7 +37,11 @@ impl Ray {
             if let Some(t) = wall.intersect_with_ray(self.pos, self.dir) {
                 let collision_point =
                     Point::new(self.pos.x + self.dir.x * t, self.pos.y + self.dir.y * t);
-                collitions.push((collision_point, wall.wall_type.clone()));
+                if wall.wall_type == WallType::Mirror {
+                    collitions.push((collision_point, WallType::Full));
+                } else {
+                    collitions.push((collision_point, wall.wall_type.clone()));
+                }
             }
         }
 

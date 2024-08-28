@@ -14,12 +14,10 @@ pub struct Args {
     pub height: u32,
     #[arg(long, default_value = "90")]
     pub fov: u32,
-    #[arg(long, default_value = "10")]
+    #[arg(long, default_value = "4")]
     pub ray_step: u32,
-    #[arg(long, default_value = "10")]
-    pub visibility: f32,
 
-    #[arg(long, default_value = "30")]
+    #[arg(long, default_value = "60")]
     pub fps: u32,
 
     #[arg(short, long, default_value = "false")]
@@ -65,7 +63,7 @@ fn main() {
         for i in 0..rays_amount {
             let angle = player.view() - args.fov as f32 / 2.0 + ray_step * i as f32;
             let ray_dir = utils::Point::new(angle.to_radians().cos(), angle.to_radians().sin());
-            let mut ray = utils::Ray::new(ray_dir, *player_pos);
+            let mut ray = utils::Ray::new(ray_dir, *player_pos, f32::atan2(i as f32 / ray_step, args.fov as f32));
             ray.calculate_intersections(map.walls());
             rays.push(ray);
         }
@@ -78,22 +76,23 @@ fn main() {
                 let ray_len =
                     (collision.x - player_pos.x).powi(2) + (collision.y - player_pos.y).powi(2);
                 let ray_len = f32::sqrt(ray_len);
-                let ray_height = args.height as f32 / ray_len;
+                let ray_height = args.height as f32 / ray_len * f32::cos(ray.angle.to_radians());
                 match wall_type {
-                    utils::WallType::Full => d.draw_rectangle(
+                    map::WallType::Full => d.draw_rectangle(
                         (args.ray_step as f32 * i as f32) as i32,
                         (args.height as f32 / 2.0 - ray_height / 2.0) as i32,
                         args.ray_step as i32,
                         ray_height as i32,
-                        scale_color(ray_len, Color::from_hex("AAAAAA").unwrap()),
+                        scale_color(ray_len, Color::from_hex("AAAAAA").unwrap(), 255),
                     ),
-                    utils::WallType::Half => d.draw_rectangle(
+                    map::WallType::Half => d.draw_rectangle(
                         (args.ray_step as f32 * i as f32) as i32,
                         (args.height as f32 / 2.0) as i32,
                         args.ray_step as i32,
                         (ray_height / 2.0) as i32,
-                        scale_color(ray_len, Color::from_hex("AA3333").unwrap()),
+                        scale_color(ray_len, Color::from_hex("AA3333").unwrap(), 255),
                     ),
+                    _ => unreachable!(),
                 }
             }
         }
@@ -134,12 +133,13 @@ fn main() {
     }
 }
 
-fn scale_color(ray_len: f32, color: Color) -> Color {
+fn scale_color(ray_len: f32, color: Color, transparency: u8) -> Color {
     let color_scale = 1.0 / ray_len * 0.75;
-    return Color::new(
-        (color.r as f32 * color_scale) as u8,
-        (color.g as f32 * color_scale) as u8,
-        (color.b as f32 * color_scale) as u8,
-        255,
-    );
+    // return Color::new(
+    //     (color.r as f32 * color_scale) as u8,
+    //     (color.g as f32 * color_scale) as u8,
+    //     (color.b as f32 * color_scale) as u8,
+    //     transparency,
+    // );
+    return color;
 }

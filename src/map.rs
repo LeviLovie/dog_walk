@@ -1,4 +1,4 @@
-use super::utils::{Point, WallType};
+use super::utils::Point;
 
 pub struct Wall {
     pub x: f32,
@@ -6,6 +6,13 @@ pub struct Wall {
     pub width: f32,
     pub height: f32,
     pub wall_type: WallType,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WallType {
+    Full,
+    Half,
+    Mirror,
 }
 
 impl Wall {
@@ -56,6 +63,7 @@ impl Map {
                 Wall::new(15.0, 3.0, 2.0, 4.0, WallType::Full),
                 Wall::new(5.0, 3.0, 2.0, 3.0, WallType::Full),
                 Wall::new(7.0, 3.0, 3.0, 2.0, WallType::Half),
+                Wall::new(10.0, 3.0, 2.0, 3.0, WallType::Mirror),
             ],
         }
     }
